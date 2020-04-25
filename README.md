@@ -37,6 +37,46 @@ Instead, it will copy all the configuration files and the transitive dependencie
 
 You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
+### running locally using docker
+
+If you want to run the server locally you need to follow the following step:
+
+```
+
+docker build -t my-app .
+# make sure port 3000 is not being used
+docker run --expose=3000 my-app
+
+```
+
+## CI/CD
+
+This repo follows the circleci's [demo setup](https://github.com/CircleCI-Public/circleci-demo-aws-ecs-ecr) closely.
+Though the pipeline is setup, it is a very rudimentary configuration, and will definitely need some tweaking for production use.
+Also, it is crucial to include testing as well, which the project currently does not have any. Without automated testing with high coverage, it is not advised to use the pipeline. 
+
+### Resource creation
+
+There is a first one time setup by terraform (please have at least v0.12 installed). Which can be done through the following command:
+
+```
+cd .terraform
+terraform init
+# Review the plan
+terraform plan
+# Apply the plan to create the AWS resources
+terraform apply
+```
+
+Make sure you have updated .terraform/terraform.tfvars with the needed infor before running the above command. Specifically you need to provide aws credential which has
+sufficient permission to create the resources. 
+
+### deployment
+
+deployment is very straightforward after the one time setup by terraform. It goes through circleci. Simply merge your feature branch to master will trigger a 
+circleci build which uses the ecs and ecr orbs. The build is in two step: first, it builds and push a new docker image with latest tag to the ecr. Second it uses the new image and tag
+to update the ecs service definition, and trigger a deployment.
+
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
